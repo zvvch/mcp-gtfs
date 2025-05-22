@@ -1,7 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "docker build -t mcp-gtfs .",
-  "outputDirectory": ".",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
