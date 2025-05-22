@@ -102,17 +102,28 @@ Die GTFS-Rohdaten werden im Verzeichnis `zvv-data/gtfs/` abgelegt und nicht vers
 
 ## Deployment
 
-### Voraussetzungen
-1. **Spice.ai CLI** (v1.1.0 oder höher)
-   ```bash
-   # Installation siehe:
-   https://docs.spiceai.org/getting-started/installation
-   ```
+### Lokale Entwicklung
 
-2. **Node.js Dependencies**
-   ```bash
-   npm install
-   ```
+#### Voraussetzungen
+- Docker und Docker Compose
+- Node.js (nur für die Entwicklung)
+
+#### Starten der Entwicklungsumgebung
+```bash
+# Container bauen und starten
+docker-compose up --build
+
+# Oder im Hintergrund
+docker-compose up -d
+```
+
+Der Server ist dann über `http://localhost:3000/v1/mcp/sse` erreichbar.
+
+### Vercel Deployment
+Das Projekt ist für Vercel optimiert:
+- Verwendet das gleiche Docker-Image wie lokal
+- Automatische GTFS-Datenaktualisierung
+- Serverless-Funktionen für die API
 
 ### Datenverwaltung
 

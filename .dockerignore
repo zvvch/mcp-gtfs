@@ -1,0 +1,19 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+
+# GTFS-Daten
+zvv-data/gtfs/*.txt
+zvv-data/gtfs/*.zip
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db 
