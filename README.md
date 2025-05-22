@@ -19,16 +19,7 @@ Das Ziel ist es, diese Daten strukturiert über die **Spice.ai MCP Engine** zug�
 
 ---
 
-## Projektstruktur
-
-```bash
-zvv-gts-mcp/
-├── zvv-data/          # Spice.ai Datenprojekt
-│   ├── gtfs/          # GTFS-Dateien (routes.txt, stops.txt, ...)
-│   └── spicepod.yaml  # Dataset-Definitionen
-├── README.md
-└── ...
-```
+## Datenbeschaffung und -struktur
 
 ### Projektstruktur
 ```
@@ -62,9 +53,7 @@ sequenceDiagram
     S->>F: 9. Lösche temporäre ZIP
 ```
 
----
-
-## GTFS-Datenstruktur
+### GTFS-Datenstruktur
 
 Im Verzeichnis `zvv-data/gtfs/` werden die offiziellen GTFS-Rohdaten des Zürcher Verkehrsverbunds (ZVV) abgelegt. Diese Dateien werden nicht versioniert (siehe `.gitignore`), sondern jeweils aktuell von [opentransportdata.swiss](https://data.opentransportdata.swiss/dataset/timetable-2025-gtfs2020) bezogen.
 
