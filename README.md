@@ -8,31 +8,6 @@ Das Ziel ist es, diese Daten strukturiert über die **Spice.ai MCP Engine** zug�
 
 > ✳️ **Hinweis:** Dieses Projekt stellt kein Chat-Interface oder Frontend bereit. Es fokussiert sich ausschliesslich auf die Datenverfügbarkeit über MCP.
 
-## Quick Start
-
-1. **Voraussetzungen installieren:**
-   ```bash
-   # Docker und Docker Compose installieren
-   # (falls noch nicht vorhanden)
-   ```
-
-2. **Projekt starten:**
-   ```bash
-   # Repository klonen
-   git clone https://github.com/zvvch/mcp-gtfs.git
-   cd mcp-gtfs
-
-   # Container starten
-   docker-compose up --build
-   ```
-
-3. **API testen:**
-   - Server läuft auf: `http://localhost:3000/v1/mcp/sse`
-   - GTFS-Daten werden automatisch heruntergeladen
-   - SQL-Abfragen über die SSE-API möglich
-
-> 💡 **Tipp:** Für detaillierte Informationen siehe die Abschnitte "Architektur" und "Deployment" weiter unten.
-
 ## Architektur
 
 ### Systemkomponenten
@@ -114,4 +89,176 @@ Die GTFS-Rohdaten werden im Verzeichnis `zvv-data/gtfs/` abgelegt und nicht vers
 
 **Kern-Datensätze:**
 - `agency.txt` – Verkehrsunternehmen
-- `
+- `stops.txt` – Haltestellen
+- `routes.txt` – Linien
+- `trips.txt` – Fahrten
+- `stop_times.txt` – Haltestellenzeiten
+- `calendar.txt` – Betriebstage
+- `calendar_dates.txt` – Ausnahmen
+- `feed_info.txt` – Metadaten
+- `transfers.txt` – Umsteigebeziehungen
+
+> **Hinweis:** `shapes.txt` (Linienführungen) ist in der Schweizer GTFS-Implementierung nicht enthalten.
+
+## Deployment
+
+### Docker-Konfiguration
+
+Das Projekt verwendet Docker für eine konsistente Entwicklungsumgebung. Die Konfiguration besteht aus zwei Hauptdateien:
+
+#### Dockerfile
+```dockerfile
+# Basis-Image mit Node.js
+FROM node:20-slim
+
+# Spice.ai Installation
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Spice.ai CLI installieren
+RUN curl -L https://github.com/spiceai/spiceai/releases/latest/download/spice_linux_amd64.tar.gz | tar xz \
+    && mv spice /usr/local/bin/ \
+    && chmod +x /usr/local/bin/spice
+
+# Arbeitsverzeichnis
+WORKDIR /app
+
+# Dependencies installieren
+COPY package*.json ./
+RUN npm install
+
+# Quellcode kopieren
+COPY . .
+
+# Port freigeben
+EXPOSE 3000
+
+# Startbefehl
+CMD ["npm", "start"]
+```
+
+#### docker-compose.yml
+```yaml
+version: '3.8'
+
+services:
+  mcp-gtfs:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm start
+```
+
+### Lokale Entwicklung
+
+#### Voraussetzungen
+- Docker Desktop (Windows/Mac) oder Docker Engine (Linux)
+- Docker Compose
+- Mindestens 2GB freier RAM
+- Mindestens 1GB freier Festplattenspeicher
+
+#### Erste Schritte
+1. **Docker installieren:**
+   - Windows/Mac: [Docker Desktop](https://www.docker.com/products/docker-desktop)
+   - Linux: [Docker Engine](https://docs.docker.com/engine/install/)
+
+2. **Projekt starten:**
+```bash
+# Container bauen und starten
+docker-compose up --build
+
+# Oder im Hintergrund
+docker-compose up -d
+```
+
+3. **Status prüfen:**
+```bash
+# Container-Status anzeigen
+docker-compose ps
+
+# Logs anzeigen
+docker-compose logs -f
+```
+
+4. **Container stoppen:**
+```bash
+# Container beenden
+docker-compose down
+
+# Container und Volumes entfernen
+docker-compose down -v
+```
+
+#### Wichtige Docker-Befehle
+```bash
+# Container neu bauen
+docker-compose build
+
+# Container neu starten
+docker-compose restart
+
+# Logs anzeigen
+docker-compose logs -f
+
+# Shell im Container öffnen
+docker-compose exec mcp-gtfs sh
+```
+
+#### Entwicklungshinweise
+- Der Code wird über ein Volume gemountet, Änderungen sind sofort sichtbar
+- `node_modules` ist in einem separaten Volume, um Konflikte zu vermeiden
+- Die GTFS-Daten werden automatisch heruntergeladen beim ersten Start
+- Der Server ist über `http://localhost:3000/v1/mcp/sse` erreichbar
+
+### Vercel Deployment
+Das Projekt ist für Vercel optimiert:
+- Verwendet das gleiche Docker-Image wie lokal
+- Automatische GTFS-Datenaktualisierung
+- Serverless-Funktionen für die API
+
+### Datenverwaltung
+
+#### Automatische GTFS-Datenaktualisierung
+Das System prüft bei jedem Start, ob alle erforderlichen GTFS-Dateien vorhanden sind:
+
+**Erforderliche Dateien:**
+- `agency.txt` – Verkehrsunternehmen
+- `stops.txt` – Haltestellen
+- `routes.txt` – Linien
+- `trips.txt` – Fahrten
+- `stop_times.txt` – Haltestellenzeiten
+- `calendar.txt` – Betriebstage
+- `calendar_dates.txt` – Ausnahmen
+- `feed_info.txt` – Metadaten
+- `transfers.txt` – Umsteigebeziehungen
+
+**Intelligenter Download:**
+- ✅ Prüft zuerst, ob alle Dateien vorhanden sind
+- ✅ Lädt nur bei fehlenden Dateien neu
+- ✅ Spart Bandbreite und Zeit
+- ✅ Verhindert unnötige Downloads
+
+#### Server starten
+```bash
+npm start
+```
+
+Der Server ist dann über `http://localhost:3000/v1/mcp/sse` erreichbar.
+
+### Status-Tracking
+Nach jedem erfolgreichen Download wird eine `gtfs-status.json` erzeugt mit:
+- Dateiname
+- Download-URL
+- Zeitstempel
+- Quelle
+
+## Lizenz & Quellen
+
+- GTFS-Daten: [opentransportdata.swiss – Fahrplan 2025 (GTFS2020)](https://data.opentransportdata.swiss/de/dataset/timetable-2025-gtfs2020)
+- Spice.ai MCP: [Dokumentation](https://docs.spiceai.org/)
