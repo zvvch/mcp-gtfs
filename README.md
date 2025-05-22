@@ -1,6 +1,6 @@
 # ZVV-GTS-MCP Server
 
-## Zweck
+## Übersicht
 
 **ZVV-GTS-MCP** ist ein serverseitiges Projekt zur Aufbereitung und Bereitstellung von ÖV-Daten des **Zürcher Verkehrsverbunds (ZVV)** auf Basis der GTFS-Daten von [opentransportdata.swiss](https://data.opentransportdata.swiss/dataset/timetable-2025-gtfs2020).
 
@@ -8,7 +8,32 @@ Das Ziel ist es, diese Daten strukturiert über die **Spice.ai MCP Engine** zug�
 
 > ✳️ **Hinweis:** Dieses Projekt stellt kein Chat-Interface oder Frontend bereit. Es fokussiert sich ausschliesslich auf die Datenverfügbarkeit über MCP.
 
----
+## Architektur
+
+### Systemkomponenten
+```mermaid
+sequenceDiagram
+    participant UserSystem as 🔍 AI/LLM-Consumer
+    participant MCP as 🧠 Spice.ai MCP
+    participant GTFS as 📦 GTFS-Daten (opentransportdata.swiss)
+
+    Note over GTFS, MCP: Setup-Phase
+    GTFS->>MCP: GTFS-Dateien (z.B. routes.txt)
+    MCP-->>MCP: Daten normalisieren, transformieren
+    MCP-->>MCP: Datasets bereitstellen (MCP Store)
+
+    Note over UserSystem, MCP: Laufzeit-Abfrage
+    UserSystem->>MCP: MCP-Query (z.B. SELECT * FROM routes)
+    MCP-->>UserSystem: Strukturierte Antwort (JSON)
+
+    Note over UserSystem: Nutzbar für LLMs, Dashboards, Agents etc.
+```
+
+### Datenfluss
+1. **Datenquelle:** GTFS-Daten von opentransportdata.swiss
+2. **Verarbeitung:** Automatische Transformation in MCP-Datasets
+3. **Bereitstellung:** Strukturierte API über Spice.ai MCP
+4. **Nutzung:** Zugriff durch AI/LLM-Systeme
 
 ## Features
 
@@ -17,9 +42,7 @@ Das Ziel ist es, diese Daten strukturiert über die **Spice.ai MCP Engine** zug�
 - 🔌 Bereitstellung von MCP-kompatiblen Datasets (`routes`, `stops`, etc.)
 - ☁️ Deployment-fähig auf **Vercel** (z. B. als Headless Daten-Service)
 
----
-
-## Datenbeschaffung und -struktur
+## Technische Details
 
 ### Projektstruktur
 ```
@@ -32,7 +55,9 @@ mcp-gtfs/
 └── README.md           # Diese Dokumentation
 ```
 
-### Sequenzdiagramm: GTFS-Download-Prozess
+### Datenbeschaffung
+
+#### Automatischer Download-Prozess
 ```mermaid
 sequenceDiagram
     participant S as Skript
@@ -53,99 +78,43 @@ sequenceDiagram
     S->>F: 9. Lösche temporäre ZIP
 ```
 
-### GTFS-Datenstruktur
+#### GTFS-Datenstruktur
+Die GTFS-Rohdaten werden im Verzeichnis `zvv-data/gtfs/` abgelegt und nicht versioniert. Stattdessen werden sie automatisch von [opentransportdata.swiss](https://data.opentransportdata.swiss/dataset/timetable-2025-gtfs2020) bezogen.
 
-Im Verzeichnis `zvv-data/gtfs/` werden die offiziellen GTFS-Rohdaten des Zürcher Verkehrsverbunds (ZVV) abgelegt. Diese Dateien werden nicht versioniert (siehe `.gitignore`), sondern jeweils aktuell von [opentransportdata.swiss](https://data.opentransportdata.swiss/dataset/timetable-2025-gtfs2020) bezogen.
-
-**Wichtige Dateien:**
-
-- `agency.txt` – Informationen zu den Verkehrsunternehmen
+**Kern-Datensätze:**
+- `agency.txt` – Verkehrsunternehmen
 - `stops.txt` – Haltestellen
 - `routes.txt` – Linien
 - `trips.txt` – Fahrten
 - `stop_times.txt` – Haltestellenzeiten
 - `calendar.txt` – Betriebstage
-- `calendar_dates.txt` – Ausnahmen im Betriebskalender
-- `feed_info.txt` – Metadaten zum Feed
-- `transfers.txt` – Umsteigebeziehungen (optional)
+- `calendar_dates.txt` – Ausnahmen
+- `feed_info.txt` – Metadaten
+- `transfers.txt` – Umsteigebeziehungen
 
-> **Hinweis:** Die Datei `shapes.txt` (Linienführungen) ist in der Schweizer GTFS-Implementierung aktuell nicht enthalten.
+> **Hinweis:** `shapes.txt` (Linienführungen) ist in der Schweizer GTFS-Implementierung nicht enthalten.
 
----
+## Deployment
 
-## Datenfluss
-
-```mermaid
-sequenceDiagram
-    participant UserSystem as 🔍 AI/LLM-Consumer
-    participant MCP as 🧠 Spice.ai MCP
-    participant GTFS as 📦 GTFS-Daten (opentransportdata.swiss)
-
-    Note over GTFS, MCP: Setup-Phase
-    GTFS->>MCP: GTFS-Dateien (z.B. routes.txt)
-    MCP-->>MCP: Daten normalisieren, transformieren
-    MCP-->>MCP: Datasets bereitstellen (MCP Store)
-
-    Note over UserSystem, MCP: Laufzeit-Abfrage
-    UserSystem->>MCP: MCP-Query (z.B. SELECT * FROM routes)
-    MCP-->>UserSystem: Strukturierte Antwort (JSON)
-
-    Note over UserSystem: Nutzbar für LLMs, Dashboards, Agents etc.
-```
-
----
-
-## Automatische GTFS-Datenaktualisierung
-
-Die jeweils aktuellsten GTFS-Rohdaten werden beim Deployment oder nach jedem `npm install` automatisch heruntergeladen und entpackt.
-
-### Motivation und Ziel
-
-Das Ziel ist, dass die Anwendung immer mit den aktuellsten Fahrplandaten des Zürcher Verkehrsverbunds (ZVV) arbeitet, ohne dass große Rohdaten im Repository gespeichert werden müssen. So bleibt das Projekt leichtgewichtig, aktuell und einfach zu deployen – sowohl lokal als auch auf Cloud-Plattformen wie Vercel.
-
-### Geplanter Ablauf
-
-1. **Automatischer Download:**
-   - Beim Deployment (z. B. auf Vercel) oder nach jedem lokalen `npm install` wird das Skript [`download-gtfs.js`](./download-gtfs.js) automatisch ausgeführt.
-   - Das Skript ruft die Seite mit den GTFS-Downloads ([opentransportdata.swiss](https://data.opentransportdata.swiss/de/dataset/timetable-2025-gtfs2020)) auf und sucht dort nach dem Link zur neuesten ZIP-Datei.
-2. **Herunterladen und Entpacken:**
-   - Die ZIP-Datei wird heruntergeladen und direkt nach `zvv-data/gtfs/` entpackt.
-   - Alle enthaltenen GTFS-Textdateien stehen danach im Projektverzeichnis zur Verfügung.
-3. **Nutzung durch die Anwendung:**
-   - Die Anwendung kann sofort auf die aktuellen Daten zugreifen, z. B. für AI/LLM-Analysen, Datenabfragen oder als MCP-Datenquelle.
-
-### Vorteile dieses Ansatzes
-- **Immer aktuell:** Es werden stets die neuesten offiziellen Daten verwendet.
-- **Kein Datenballast im Repo:** Große Dateien werden nicht versioniert, das Repository bleibt schlank.
-- **Automatisierbar:** Funktioniert lokal und in Cloud-Deployments ohne manuelle Eingriffe.
-- **Nachvollziehbar:** Die Datenquelle ist transparent und im README dokumentiert.
-
-### Nutzung
-
-**Automatisch:**
-- Das Skript wird automatisch im `postinstall`-Schritt der `package.json` ausgeführt:
-  ```bash
-  npm install
-  ```
-  oder beim Deployment (z. B. auf Vercel).
-
-**Manuell:**
-- Das Skript kann auch manuell ausgeführt werden:
-  ```bash
-  node download-gtfs.js
-  ```
+### Automatische Aktualisierung
+Die GTFS-Daten werden automatisch aktualisiert:
+- Beim Deployment (z.B. auf Vercel)
+- Nach jedem `npm install`
+- Manuell via `node download-gtfs.js`
 
 ### Abhängigkeiten
-- Es werden die Pakete [`cheerio`](https://www.npmjs.com/package/cheerio) und [`unzipper`](https://www.npmjs.com/package/unzipper) benötigt:
-  ```bash
-  npm install cheerio unzipper
-  ```
+```bash
+npm install cheerio unzipper
+```
 
-### Hinweis
-- Die GTFS-Daten werden nicht im Repository versioniert, sondern immer aktuell bezogen.
-- Quelle: [opentransportdata.swiss – Fahrplan 2025 (GTFS2020)](https://data.opentransportdata.swiss/de/dataset/timetable-2025-gtfs2020)
+### Status-Tracking
+Nach jedem erfolgreichen Download wird eine `gtfs-status.json` erzeugt mit:
+- Dateiname
+- Download-URL
+- Zeitstempel
+- Quelle
 
-**Status- und Metadaten:**
-- Nach jedem erfolgreichen Download und Entpacken wird automatisch eine Datei [`zvv-data/gtfs/gtfs-status.json`](zvv-data/gtfs/gtfs-status.json) erzeugt.
-- Diese enthält Informationen zum verwendeten GTFS-Archiv (Dateiname, Download-URL, Zeitstempel, Quelle etc.).
-- So ist jederzeit nachvollziehbar, welche Datenbasis aktuell im Projekt liegt.
+## Lizenz & Quellen
+
+- GTFS-Daten: [opentransportdata.swiss – Fahrplan 2025 (GTFS2020)](https://data.opentransportdata.swiss/de/dataset/timetable-2025-gtfs2020)
+- Spice.ai MCP: [Dokumentation](https://docs.spiceai.org/)
