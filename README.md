@@ -102,16 +102,24 @@ Die GTFS-Rohdaten werden im Verzeichnis `zvv-data/gtfs/` abgelegt und nicht vers
 
 ## Deployment
 
-### Automatische Aktualisierung
-Die GTFS-Daten werden automatisch aktualisiert:
-- Beim Deployment (z.B. auf Vercel)
-- Nach jedem `npm install`
-- Manuell via `node download-gtfs.js`
+### Voraussetzungen
+1. **Spice.ai CLI** (v1.1.0 oder höher)
+   ```bash
+   # Installation siehe:
+   https://docs.spiceai.org/getting-started/installation
+   ```
 
-### Abhängigkeiten
+2. **Node.js Dependencies**
+   ```bash
+   npm install
+   ```
+
+### Server starten
 ```bash
-npm install cheerio unzipper
+npm start
 ```
+
+Der Server ist dann über `http://localhost:3000/v1/mcp/sse` erreichbar.
 
 ### Status-Tracking
 Nach jedem erfolgreichen Download wird eine `gtfs-status.json` erzeugt mit:

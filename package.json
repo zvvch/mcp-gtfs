@@ -9,8 +9,6 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
-    "unzipper": "^0.10.11",
-    "@spiceai/spice": "^1.1.0",
-    "apache-arrow": "^14.0.1"
+    "unzipper": "^0.10.11"
   }
 }
