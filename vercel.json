@@ -2,7 +2,6 @@
   "version": 2,
   "buildCommand": "docker build -t mcp-gtfs .",
   "outputDirectory": ".",
-  "framework": "docker",
   "routes": [
     {
       "src": "/(.*)",
