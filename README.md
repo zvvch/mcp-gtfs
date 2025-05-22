@@ -14,26 +14,32 @@ Das Ziel ist es, diese Daten strukturiert über die **Spice.ai MCP Engine** zug�
 ```mermaid
 sequenceDiagram
     participant UserSystem as 🔍 AI/LLM-Consumer
-    participant MCP as 🧠 Spice.ai MCP
+    participant MCP as 🧠 Spice.ai MCP v1.1.0
     participant GTFS as 📦 GTFS-Daten (opentransportdata.swiss)
 
     Note over GTFS, MCP: Setup-Phase
     GTFS->>MCP: GTFS-Dateien (z.B. routes.txt)
-    MCP-->>MCP: Daten normalisieren, transformieren
-    MCP-->>MCP: Datasets bereitstellen (MCP Store)
+    MCP-->>MCP: DataFusion SQL Engine
+    MCP-->>MCP: SSE API (/v1/mcp/sse)
 
     Note over UserSystem, MCP: Laufzeit-Abfrage
-    UserSystem->>MCP: MCP-Query (z.B. SELECT * FROM routes)
-    MCP-->>UserSystem: Strukturierte Antwort (JSON)
+    UserSystem->>MCP: SQL Query
+    MCP-->>UserSystem: Arrow/JSON Response
 
     Note over UserSystem: Nutzbar für LLMs, Dashboards, Agents etc.
 ```
 
+### Technologie-Stack
+- **Spice.ai v1.1.0**: MCP-Server mit SSE-API
+- **DataFusion**: Schnelle SQL-Abfragen
+- **Apache Arrow**: Effiziente Datenformate
+- **Node.js**: GTFS-Datenverarbeitung
+
 ### Datenfluss
 1. **Datenquelle:** GTFS-Daten von opentransportdata.swiss
-2. **Verarbeitung:** Automatische Transformation in MCP-Datasets
-3. **Bereitstellung:** Strukturierte API über Spice.ai MCP
-4. **Nutzung:** Zugriff durch AI/LLM-Systeme
+2. **Verarbeitung:** SQL-Transformation via DataFusion
+3. **Bereitstellung:** SSE-API über Spice.ai MCP
+4. **Nutzung:** Direkter SQL-Zugriff für AI/LLM-Systeme
 
 ## Features
 

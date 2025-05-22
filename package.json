@@ -1,9 +1,16 @@
 {
+  "name": "mcp-gtfs",
+  "version": "1.0.0",
+  "description": "GTFS-Daten für Spice.ai MCP",
+  "main": "download-gtfs.js",
   "scripts": {
-    "postinstall": "node download-gtfs.js"
+    "postinstall": "node download-gtfs.js",
+    "start": "node server.js"
   },
   "dependencies": {
-    "cheerio": "^1.0.0",
-    "unzipper": "^0.12.3"
+    "cheerio": "^1.0.0-rc.12",
+    "unzipper": "^0.10.11",
+    "@spiceai/spice": "^1.1.0",
+    "apache-arrow": "^14.0.1"
   }
 }
