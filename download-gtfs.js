@@ -9,6 +9,37 @@ const GTFS_PAGE = 'https://data.opentransportdata.swiss/de/dataset/timetable-202
 // Zielverzeichnis für die entpackten GTFS-Dateien
 const TARGET_DIR = path.join(__dirname, 'zvv-data', 'gtfs');
 
+// Liste der erwarteten GTFS-Dateien
+const REQUIRED_GTFS_FILES = [
+  'agency.txt',
+  'stops.txt',
+  'routes.txt',
+  'trips.txt',
+  'stop_times.txt',
+  'calendar.txt',
+  'calendar_dates.txt',
+  'feed_info.txt',
+  'transfers.txt'
+];
+
+/**
+ * Prüft, ob alle erforderlichen GTFS-Dateien bereits vorhanden sind
+ */
+function areGtfsFilesPresent() {
+  if (!fs.existsSync(TARGET_DIR)) {
+    return false;
+  }
+
+  return REQUIRED_GTFS_FILES.every(file => {
+    const filePath = path.join(TARGET_DIR, file);
+    const exists = fs.existsSync(filePath);
+    if (!exists) {
+      console.log(`❌ Fehlende GTFS-Datei: ${file}`);
+    }
+    return exists;
+  });
+}
+
 /**
  * Prüft, ob die Datei einen gültigen ZIP-Header besitzt (0x504b0304)
  * Dies verhindert, dass versehentlich HTML-Fehlerseiten als ZIP entpackt werden
@@ -127,9 +158,14 @@ async function downloadAndExtractZip(zipUrl) {
   });
 }
 
-// Hauptablauf: Hole die neueste GTFS-ZIP, lade sie herunter und entpacke sie
+// Hauptablauf: Prüfe zuerst, ob alle Dateien vorhanden sind
 (async () => {
   try {
+    if (areGtfsFilesPresent()) {
+      console.log('✅ Alle GTFS-Dateien sind bereits vorhanden. Überspringe Download.');
+      process.exit(0);
+    }
+
     console.log('Suche nach dem neuesten GTFS-ZIP...');
     const zipUrl = await fetchLatestZipUrl();
     console.log('Gefunden:', zipUrl);
