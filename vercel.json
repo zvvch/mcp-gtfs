@@ -1,11 +1,8 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "Dockerfile",
-      "use": "@vercel/docker"
-    }
-  ],
+  "buildCommand": "docker build -t mcp-gtfs .",
+  "outputDirectory": ".",
+  "framework": "docker",
   "routes": [
     {
       "src": "/(.*)",
