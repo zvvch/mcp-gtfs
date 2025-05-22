@@ -30,6 +30,38 @@ zvv-gts-mcp/
 └── ...
 ```
 
+### Projektstruktur
+```
+mcp-gtfs/
+├── download-gtfs.js     # Skript zum automatischen Download der GTFS-Daten
+├── package.json         # Node.js-Projektkonfiguration
+├── zvv-data/           # Verzeichnis für GTFS-Daten
+│   └── gtfs/           # GTFS-Rohdaten (wird automatisch gefüllt)
+│       └── gtfs-status.json  # Metadaten zum letzten Download
+└── README.md           # Diese Dokumentation
+```
+
+### Sequenzdiagramm: GTFS-Download-Prozess
+```mermaid
+sequenceDiagram
+    participant S as Skript
+    participant O as opentransportdata.swiss
+    participant F as Dateisystem
+    participant Z as ZIP-Verarbeitung
+
+    S->>O: 1. Lade Übersichtsseite
+    O-->>S: HTML mit Download-Links
+    S->>S: 2. Extrahiere neuesten ZIP-Link
+    S->>O: 3. Starte Download
+    O-->>S: ZIP-Datei (mit Redirects)
+    S->>F: 4. Speichere temporär
+    S->>F: 5. Prüfe ZIP-Header
+    S->>Z: 6. Entpacke ZIP
+    Z->>F: 7. Schreibe GTFS-Dateien
+    S->>F: 8. Erstelle Status-Datei
+    S->>F: 9. Lösche temporäre ZIP
+```
+
 ---
 
 ## GTFS-Datenstruktur
