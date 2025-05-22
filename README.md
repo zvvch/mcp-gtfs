@@ -8,6 +8,31 @@ Das Ziel ist es, diese Daten strukturiert über die **Spice.ai MCP Engine** zug�
 
 > ✳️ **Hinweis:** Dieses Projekt stellt kein Chat-Interface oder Frontend bereit. Es fokussiert sich ausschliesslich auf die Datenverfügbarkeit über MCP.
 
+## Quick Start
+
+1. **Voraussetzungen installieren:**
+   ```bash
+   # Docker und Docker Compose installieren
+   # (falls noch nicht vorhanden)
+   ```
+
+2. **Projekt starten:**
+   ```bash
+   # Repository klonen
+   git clone https://github.com/zvvch/mcp-gtfs.git
+   cd mcp-gtfs
+
+   # Container starten
+   docker-compose up --build
+   ```
+
+3. **API testen:**
+   - Server läuft auf: `http://localhost:3000/v1/mcp/sse`
+   - GTFS-Daten werden automatisch heruntergeladen
+   - SQL-Abfragen über die SSE-API möglich
+
+> 💡 **Tipp:** Für detaillierte Informationen siehe die Abschnitte "Architektur" und "Deployment" weiter unten.
+
 ## Architektur
 
 ### Systemkomponenten
@@ -89,79 +114,4 @@ Die GTFS-Rohdaten werden im Verzeichnis `zvv-data/gtfs/` abgelegt und nicht vers
 
 **Kern-Datensätze:**
 - `agency.txt` – Verkehrsunternehmen
-- `stops.txt` – Haltestellen
-- `routes.txt` – Linien
-- `trips.txt` – Fahrten
-- `stop_times.txt` – Haltestellenzeiten
-- `calendar.txt` – Betriebstage
-- `calendar_dates.txt` – Ausnahmen
-- `feed_info.txt` – Metadaten
-- `transfers.txt` – Umsteigebeziehungen
-
-> **Hinweis:** `shapes.txt` (Linienführungen) ist in der Schweizer GTFS-Implementierung nicht enthalten.
-
-## Deployment
-
-### Lokale Entwicklung
-
-#### Voraussetzungen
-- Docker und Docker Compose
-- Node.js (nur für die Entwicklung)
-
-#### Starten der Entwicklungsumgebung
-```bash
-# Container bauen und starten
-docker-compose up --build
-
-# Oder im Hintergrund
-docker-compose up -d
-```
-
-Der Server ist dann über `http://localhost:3000/v1/mcp/sse` erreichbar.
-
-### Vercel Deployment
-Das Projekt ist für Vercel optimiert:
-- Verwendet das gleiche Docker-Image wie lokal
-- Automatische GTFS-Datenaktualisierung
-- Serverless-Funktionen für die API
-
-### Datenverwaltung
-
-#### Automatische GTFS-Datenaktualisierung
-Das System prüft bei jedem Start, ob alle erforderlichen GTFS-Dateien vorhanden sind:
-
-**Erforderliche Dateien:**
-- `agency.txt` – Verkehrsunternehmen
-- `stops.txt` – Haltestellen
-- `routes.txt` – Linien
-- `trips.txt` – Fahrten
-- `stop_times.txt` – Haltestellenzeiten
-- `calendar.txt` – Betriebstage
-- `calendar_dates.txt` – Ausnahmen
-- `feed_info.txt` – Metadaten
-- `transfers.txt` – Umsteigebeziehungen
-
-**Intelligenter Download:**
-- ✅ Prüft zuerst, ob alle Dateien vorhanden sind
-- ✅ Lädt nur bei fehlenden Dateien neu
-- ✅ Spart Bandbreite und Zeit
-- ✅ Verhindert unnötige Downloads
-
-#### Server starten
-```bash
-npm start
-```
-
-Der Server ist dann über `http://localhost:3000/v1/mcp/sse` erreichbar.
-
-### Status-Tracking
-Nach jedem erfolgreichen Download wird eine `gtfs-status.json` erzeugt mit:
-- Dateiname
-- Download-URL
-- Zeitstempel
-- Quelle
-
-## Lizenz & Quellen
-
-- GTFS-Daten: [opentransportdata.swiss – Fahrplan 2025 (GTFS2020)](https://data.opentransportdata.swiss/de/dataset/timetable-2025-gtfs2020)
-- Spice.ai MCP: [Dokumentation](https://docs.spiceai.org/)
+- `
