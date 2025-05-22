@@ -114,7 +114,29 @@ Die GTFS-Rohdaten werden im Verzeichnis `zvv-data/gtfs/` abgelegt und nicht vers
    npm install
    ```
 
-### Server starten
+### Datenverwaltung
+
+#### Automatische GTFS-Datenaktualisierung
+Das System prüft bei jedem Start, ob alle erforderlichen GTFS-Dateien vorhanden sind:
+
+**Erforderliche Dateien:**
+- `agency.txt` – Verkehrsunternehmen
+- `stops.txt` – Haltestellen
+- `routes.txt` – Linien
+- `trips.txt` – Fahrten
+- `stop_times.txt` – Haltestellenzeiten
+- `calendar.txt` – Betriebstage
+- `calendar_dates.txt` – Ausnahmen
+- `feed_info.txt` – Metadaten
+- `transfers.txt` – Umsteigebeziehungen
+
+**Intelligenter Download:**
+- ✅ Prüft zuerst, ob alle Dateien vorhanden sind
+- ✅ Lädt nur bei fehlenden Dateien neu
+- ✅ Spart Bandbreite und Zeit
+- ✅ Verhindert unnötige Downloads
+
+#### Server starten
 ```bash
 npm start
 ```
