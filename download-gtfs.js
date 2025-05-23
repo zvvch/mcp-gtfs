@@ -8,6 +8,8 @@ const cheerio = require('cheerio');
 const GTFS_PAGE = 'https://data.opentransportdata.swiss/de/dataset/timetable-2025-gtfs2020';
 // Zielverzeichnis für die entpackten GTFS-Dateien
 const TARGET_DIR = path.join(__dirname, 'zvv-data', 'gtfs');
+// Maximale Zeit zwischen Downloads (24 Stunden in Millisekunden)
+const MAX_DOWNLOAD_AGE = 24 * 60 * 60 * 1000;
 
 // Liste der erwarteten GTFS-Dateien
 const REQUIRED_GTFS_FILES = [
@@ -23,21 +25,38 @@ const REQUIRED_GTFS_FILES = [
 ];
 
 /**
- * Prüft, ob alle erforderlichen GTFS-Dateien bereits vorhanden sind
+ * Prüft, ob die GTFS-Dateien vorhanden und aktuell sind
  */
-function areGtfsFilesPresent() {
+function areGtfsFilesPresentAndCurrent() {
   if (!fs.existsSync(TARGET_DIR)) {
     return false;
   }
 
-  return REQUIRED_GTFS_FILES.every(file => {
-    const filePath = path.join(TARGET_DIR, file);
-    const exists = fs.existsSync(filePath);
-    if (!exists) {
-      console.log(`❌ Fehlende GTFS-Datei: ${file}`);
+  // Prüfe Status-Datei
+  const statusFile = path.join(TARGET_DIR, 'gtfs-status.json');
+  if (fs.existsSync(statusFile)) {
+    try {
+      const status = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+      const downloadTime = new Date(status.downloaded_at).getTime();
+      const now = new Date().getTime();
+      
+      // Wenn die Dateien jünger als MAX_DOWNLOAD_AGE sind, sind sie aktuell
+      if (now - downloadTime < MAX_DOWNLOAD_AGE) {
+        return REQUIRED_GTFS_FILES.every(file => {
+          const filePath = path.join(TARGET_DIR, file);
+          const exists = fs.existsSync(filePath);
+          if (!exists) {
+            console.log(`❌ Fehlende GTFS-Datei: ${file}`);
+          }
+          return exists;
+        });
+      }
+    } catch (err) {
+      console.log('❌ Fehler beim Lesen der Status-Datei:', err);
     }
-    return exists;
-  });
+  }
+  
+  return false;
 }
 
 /**
@@ -158,22 +177,23 @@ async function downloadAndExtractZip(zipUrl) {
   });
 }
 
-// Hauptablauf: Prüfe zuerst, ob alle Dateien vorhanden sind
+// Hauptablauf: Prüfe zuerst, ob alle Dateien vorhanden und aktuell sind
 (async () => {
   try {
-    if (areGtfsFilesPresent()) {
-      console.log('✅ Alle GTFS-Dateien sind bereits vorhanden. Überspringe Download.');
+    console.log('🔍 Prüfe vorhandene GTFS-Dateien...');
+    if (areGtfsFilesPresentAndCurrent()) {
+      console.log('✅ GTFS-Dateien sind vorhanden und aktuell. Überspringe Download.');
       process.exit(0);
     }
 
-    console.log('Suche nach dem neuesten GTFS-ZIP...');
+    console.log('🔍 Suche nach dem neuesten GTFS-ZIP...');
     const zipUrl = await fetchLatestZipUrl();
-    console.log('Gefunden:', zipUrl);
-    console.log('Lade herunter und entpacke nach', TARGET_DIR);
+    console.log('✅ Gefunden:', zipUrl);
+    console.log('📥 Lade herunter und entpacke nach', TARGET_DIR);
     await downloadAndExtractZip(zipUrl);
-    console.log('Fertig!');
+    console.log('✅ GTFS-Daten erfolgreich heruntergeladen und entpackt.');
   } catch (err) {
-    console.error('FEHLER:', err);
+    console.error('❌ FEHLER:', err);
     process.exit(1);
   }
 })(); 

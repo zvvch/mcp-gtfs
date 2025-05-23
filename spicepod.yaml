@@ -1,0 +1,37 @@
+name: mcp-gtfs
+version: v1beta1
+kind: Spicepod
+metadata:
+  name: mcp-gtfs
+runtime:
+  flight:
+    port: 50051
+  cors:
+    allowed_origins: ["*"]
+datasets:
+  - name: stops
+    from: file
+    params:
+      source: file
+      format: csv
+      path: ./zvv-data/gtfs/stops.txt
+      spiceai_api_key: ${SPICEAI_API_KEY}
+components:
+  - name: llm
+    type: model
+    kind: llm
+    params:
+      provider: openai
+      model: gpt-4
+      api_key: ${OPENAI_API_KEY}
+      tools:
+        - name: gtfs_info
+          description: "Liefert Informationen zu GTFS-Daten des ZVV"
+          function: |
+            async function gtfs_info(query) {
+              if (query.toLowerCase().includes("stop") || query.toLowerCase().includes("haltestelle")) {
+                return { data: "Verwende die stops-Tabelle, um Informationen zu Haltestellen zu erhalten." };
+              } else {
+                return { data: "GTFS-Daten enthalten Informationen zu Haltestellen des ZVV." };
+              }
+            }

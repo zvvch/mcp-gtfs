@@ -1,14 +1,41 @@
 {
   "name": "mcp-gtfs",
   "version": "1.0.0",
-  "description": "GTFS-Daten für Spice.ai MCP",
-  "main": "download-gtfs.js",
+  "description": "MCP-Server für GTFS-Daten mit Spice.ai",
+  "main": "server.js",
   "scripts": {
-    "postinstall": "node download-gtfs.js",
-    "start": "node server.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "download-gtfs": "node download-gtfs.js",
+    "spice-init": "spice init",
+    "spice-run": "spice run"
   },
   "dependencies": {
+    "better-sqlite3": "^11.10.0",
     "cheerio": "^1.0.0-rc.12",
-    "unzipper": "^0.10.11"
-  }
+    "csv-parse": "^5.6.0",
+    "express": "^4.18.2",
+    "next": "^14.1.0",
+    "node-fetch": "^2.7.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "unzipper": "^0.10.14"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zvvch/mcp-gtfs.git"
+  },
+  "keywords": [
+    "gtfs",
+    "spice.ai",
+    "mcp",
+    "next.js"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zvvch/mcp-gtfs/issues"
+  },
+  "homepage": "https://github.com/zvvch/mcp-gtfs#readme"
 }
